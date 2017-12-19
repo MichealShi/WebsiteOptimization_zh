@@ -507,25 +507,29 @@ function updatePositions() {
     frame++;
     window.performance.mark("mark_start_frame");
 
-    var items = document.getElementsByClassName('mover');
-    var scrollTop =  window.pageYOffset;
-    var length = items.length;
-    var phase = [];
-    for (var i = 0; i < length; i++) {
-        var num = Math.sin((scrollTop / 1250) + (i % 5));
-        phase.push(num);
-        //var phase = Math.sin((scrollTop / 1250) + (i % 5));
-        items[i].style.left = items[i].basicLeft + 100 * phase[i % 5] + 'px';
+    function animate() {
+        var items = document.getElementsByClassName('mover');
+        var scrollTop =  window.pageYOffset;
+        var length = items.length;
+        var phase = [];
+        for (var i = 0; i < length; i++) {
+            var num = Math.sin((scrollTop / 1250) + (i % 5));
+            phase.push(num);
+            //var phase = Math.sin((scrollTop / 1250) + (i % 5));
+            items[i].style.left = items[i].basicLeft + 100 * phase[i % 5] + 'px';
+        }
+
+        // 再次使用User Timing API。这很值得学习
+        // 能够很容易地自定义测量维度
+        window.performance.mark("mark_end_frame");
+        window.performance.measure("measure_frame_duration", "mark_start_frame", "mark_end_frame");
+        if (frame % 10 === 0) {
+            var timesToUpdatePosition = window.performance.getEntriesByName("measure_frame_duration");
+            logAverageFrame(timesToUpdatePosition);
+        }
     }
 
-    // 再次使用User Timing API。这很值得学习
-    // 能够很容易地自定义测量维度
-    window.performance.mark("mark_end_frame");
-    window.performance.measure("measure_frame_duration", "mark_start_frame", "mark_end_frame");
-    if (frame % 10 === 0) {
-        var timesToUpdatePosition = window.performance.getEntriesByName("measure_frame_duration");
-        logAverageFrame(timesToUpdatePosition);
-    }
+    requestAnimationFrame(animate);
 }
 // 在页面滚动时运行updatePositions函数
 window.addEventListener('scroll', updatePositions);
@@ -534,8 +538,9 @@ window.addEventListener('scroll', updatePositions);
 document.addEventListener('DOMContentLoaded', function () {
     var cols = 8;
     var s = 256;
+    var pizzaNum = (window.innerHeight / s) * cols;
     var movingPizzas1 = document.getElementById("movingPizzas1");
-    for (var i = 0; i < 20; i++) {
+    for (var i = 0; i < pizzaNum; i++) {
         var elem = document.createElement('img');
         elem.className = 'mover';
         elem.src = "images/pizza.png";
